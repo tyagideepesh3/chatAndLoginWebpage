@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/socket.io/socket.io.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="text" placeholder="To" id="to">
+    <input type="text" id="msg" placeholder="Msg(Default To Every one)">
+    <button type="button" id="send">Send</button>
+    <ul id="ulId"></ul>
+    <script>
+        const socket = io()
+        // console.log(`<%= userName %>`)
+        const send = document.getElementById('send')
+        send.addEventListener('click', (e) => {
+            const to = document.getElementById('to').value
+            const msg = document.getElementById('msg').value
+            e.preventDefault();
+            socket.emit('msg_send', {
+                by: `<%= userName %>`,
+                to,
+                msg
+            })
+        })
+        socket.on('msg_rcved' , (data) => {
+            let html = `
+                <li>Send By ${data.by}:  ${data.msg}</li>
+            `
+            document.getElementById('ulId').append(html)
+        })
+    </script>
+</body>
+
+</html>

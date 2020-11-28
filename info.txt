@@ -1,0 +1,64 @@
+WHAT IS CONNECT-FLASH : -
+    The flash is a special area of the session used for storing messages.
+    Messages are written to the flash and cleared after being displayed to the user.
+    The flash is typically used in combination with redirects, ensuring that the message is available to the next page that is to be rendered.
+HOW TO USE FLASH : -
+    Flash messages are stored in the session.
+    First, setup sessions as usual by enabling cookieParser and session middleware.
+    Then, use flash middleware provided by connect-flash.
+WHAT IS PASSPORT : -
+    Authenticating requests is as simple as calling passport.authenticate() and specifying which strategy to employ.
+    By default, if authentication fails,
+    Passport will respond with a 401 Unauthorized status,
+    and any additional route handlers will not be invoked.
+    If authentication succeeds,
+    the next handler will be invoked and the req.user property will be set to the authenticated user.
+
+HOW TO USE : -
+    route.post('/login' , async (req , res , next) => {
+        passport.authenticate('local' , {
+            failureRedirect: '/login',//IF THE redirects fails
+            successRedirect: '/success',//IF THE redirects succeeds
+            failureFlash: true,//WHAT Messages YOU WOULD LIKE TO FLASH ON success AND failure
+            successFlash: true
+        })(req , res , next)
+    })
+FLASH MESSAGES : -
+    Redirects are often combined with flash messages in order to display status information to the user.
+    Setting the failureFlash option to true instructs Passport to flash an error message using the message given by the strategy's verify callback, if any.
+    This is often the best approach, because the verify callback can make the most accurate determination of why authentication failed.
+ALTERNATIVE OPTIONS :-
+passport.authenticate('local', { failureFlash: 'Invalid username or password.' });
+passport.authenticate('local', { successFlash: 'Welcome!' });
+Note: Using flash messages requires a req.flash() function.
+    Express 2.x provided this functionality, however it was removed from Express 3.x.
+    Use of connect-flash middleware is recommended to provide this functionality when using Express 3.x.
+PASSPORT-LOCAL :) 
+    This module lets you authenticate using a username and password in your Node.js applications.
+    By plugging into Passport, local authentication can be easily and unobtrusively integrated into any
+    application or framework that supports Connect-style middleware, including Express.
+
+Configure
+Three pieces need to be configured to use Passport for authentication:
+
+1-> Authentication strategies
+2-> Application middleware
+3-> Sessions (optional)
+
+//Authentication Stratgey
+const localStrategy = require('passport-local').Strategy;
+passport.use(new localStrategy({usernameField: 'email'} , async (username , password , done) => {
+    const userFind = await Users.findOne({where: {
+        email: username
+    }})
+    if(!userFind){
+        return done(null , false , {message : 'User Dose not exist'});
+    }
+    const validPassword = await bcrypt.compare(password, userFind.password)
+    if(!validPassword){//messages are displayed threw flash ==> only present on "/login" page not on success page
+        return done(null , false , {message: 'Password Dont match'} );
+    }
+    if(validPassword){
+        return done(null , userFind , {message: 'SUCCESSFULLY LOGGED IN'});
+    }
+}))
